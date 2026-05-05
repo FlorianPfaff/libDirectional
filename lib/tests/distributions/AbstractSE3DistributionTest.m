@@ -20,6 +20,9 @@ classdef AbstractSE3DistributionTest < matlab.unittest.TestCase
             testCase.verifyWarningFree(@()cpd.plotState(10,false));
         end
         function testPlotTrajectory(testCase)
+            import matlab.unittest.fixtures.SuppressedWarningsFixture
+            testCase.applyFixture(SuppressedWarningsFixture('MATLAB:hg:AutoSoftwareOpenGL')); % Supress warnings on jenkins server
+            testCase.applyFixture(SuppressedWarningsFixture('MATLAB:graphics:HardwareUnavailable')); % Suppress warnings on headless GitHub-hosted runners
             close all
             offsets = 0:9;
             quats = [1;1;1;1]+[offsets;zeros(3,10)];
