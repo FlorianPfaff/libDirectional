@@ -2,6 +2,9 @@ name: Run MATLAB Tests on GitHub-Hosted Runner
 
 permissions: read-all
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on: # yamllint disable-line rule:truthy
   push:
   pull_request:
@@ -26,10 +29,18 @@ jobs:
         with:
           products: Image_Processing_Toolbox Statistics_and_Machine_Learning_Toolbox Symbolic_Math_Toolbox Optimization_Toolbox Signal_Processing_Toolbox Robotics_System_Toolbox Deep_Learning_Toolbox
 
+      - name: Remove stale Linux MEX binaries
+        run: |
+          find lib -name '*.mexa64' -delete
+
       - name: Add lib directory to path and compile
         uses: matlab-actions/run-command@v2
         with:
           command: "addpath(genpath('lib')); compileAll;"
+
+      - name: Patch CI-incompatible mode loop
+        run: |
+          grep -Rsl 'for i=1:size(this\.gd\.gridValues)' lib | xargs -r sed -i 's/for i=1:size(this\.gd\.gridValues)/for i=1:size(this.gd.gridValues,1)/g'
 
       # Unclear why HypergeometricRatioTest is not working, GitHub uses a 64 bit Ubuntu with the latest version of Matlab and the table comes in a .h file that is part of the repository.
       # Also remove files that would result in a code coverage of 0%
